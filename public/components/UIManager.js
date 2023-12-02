@@ -439,31 +439,50 @@ class UIManager {
     }
     toggleAIActorList() {
         document.querySelector(".modal-overlay").addEventListener("click", this.toggleAIActorList);
-        const aiActorList = document.getElementById("ai-actor-container");
-        const isVisible = aiActorList.getAttribute("data-visible") === "true";
-        const overlay = document.querySelector(".modal-overlay");
-        function hideAIActorOnOutsideClick(event) {
-            const profileListAIActor = document.getElementById("new-chat-button");
+        const aiActorList = document.getElementById("ai-actor-list");
+        
+        swal({
+            title:"choose your aiActor",
+            content:aiActorList,
+            buttons:{
+                cancel:"close",
+                newTopic:{
+                    value:"new topic",
+                    text:"New Topic",
+                    className:"new-topic-button",
+                }
+            },
+            className:"ai-actor-modal",
+            closeOnClickOutside:false,
+        })
+        .then((value)=>{
+           
+            
+        })
+        // const isVisible = aiActorList.getAttribute("data-visible") === "true";
+        // const overlay = document.querySelector(".modal-overlay");
+        // function hideAIActorOnOutsideClick(event) {
+        //     const profileListAIActor = document.getElementById("new-chat-button");
 
-            if (event.target !== aiActorList && event.target !== profileListAIActor && !profileListAIActor.contains(event.target)) {
-                aiActorList.style.display = "none";
-                aiActorList.setAttribute("data-visible", false);
-                overlay.style.display = "none";
-                document.removeEventListener("click", hideAIActorOnOutsideClick);
-            }
-        }
+        //     if (event.target !== aiActorList && event.target !== profileListAIActor && !profileListAIActor.contains(event.target)) {
+        //         aiActorList.style.display = "none";
+        //         aiActorList.setAttribute("data-visible", false);
+        //         overlay.style.display = "none";
+        //         document.removeEventListener("click", hideAIActorOnOutsideClick);
+        //     }
+        // }
 
-        if (isVisible) {
-            aiActorList.style.display = "none";
-            aiActorList.setAttribute("data-visible", false);
-            overlay.style.display = "none";
-            document.removeEventListener("click", hideAIActorOnOutsideClick);
-        } else {
-            aiActorList.style.display = "block";
-            aiActorList.setAttribute("data-visible", true);
-            overlay.style.display = "block";
-            document.addEventListener("click", hideAIActorOnOutsideClick);
-        }
+        // if (isVisible) {
+        //     aiActorList.style.display = "none";
+        //     aiActorList.setAttribute("data-visible", false);
+        //     overlay.style.display = "none";
+        //     document.removeEventListener("click", hideAIActorOnOutsideClick);
+        // } else {
+        //     aiActorList.style.display = "block";
+        //     aiActorList.setAttribute("data-visible", true);
+        //     overlay.style.display = "block";
+        //     document.addEventListener("click", hideAIActorOnOutsideClick);
+        // }
     }
 
     loadMessagesByChatId(chatId, sendFollowUpQuestions = false) {
