@@ -12,3 +12,5 @@ AZURE_STORAGE_CONNECTION_STRING=your-azure-storage-connection-string
 
 API_DALLE_KEY=your-dalle-api-key
 API_DALLE_URL=https://your-dalle-url.openai.azure.com/dalle/text-to-image?api-version=2023-06-01-preview
+AZURE_OCR_SUBSCRIPTION_KEY=your_subscription_key_here
+AZURE_OCR_ENDPOINT=your_endpoint_here

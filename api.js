@@ -2,7 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
-
+const azureOCRController=require("./controllers/azureOCRController");
 const azureTTSController = require("./controllers/azureTTSController");
 const gptController = require("./controllers/gptController");
 const profileController = require("./controllers/profileController");
@@ -29,6 +29,8 @@ router.post("/profiles", profileController.createProfile);
 router.put("/profiles/:name", profileController.updateProfile);
 router.delete("/profiles/:name", profileController.deleteProfile);
 router.get("/gpt-default-params", gptController.getDefaultParams);
+
+router.post("/image-to-text",azureOCRController.readTextFromImage);
 
 const chatHistoryController = require("./controllers/chatHistoryController");
 const messageController = require("./controllers/messageController");

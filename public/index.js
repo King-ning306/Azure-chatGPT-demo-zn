@@ -6,7 +6,6 @@ import { setupVoiceInput } from "./utils/input-audio.js";
 import swal from "sweetalert";
 import MarkdownManager from "./components/MarkdownManager.js";
 import setup from "./setup.js";
-
 const uiManager = setup();
 const app = uiManager.app;
 
@@ -57,7 +56,7 @@ slider.addEventListener("input", function () {
             messageElement.classList.remove("active");
             uiManager.storageManager.saveMessageActiveStatus(uiManager.currentChatId, messageId, false);
         }
-        const updatedMessage = uiManager.storageManager.getMessage(uiManager.currentChatId, messageId);
+        const updatedMessage = uiManager.storageManager.getMessage(this.uiManager.currentChatId, messageId);
         uiManager.syncManager.syncMessageUpdate(uiManager.currentChatId, updatedMessage);
     });
 
@@ -454,16 +453,13 @@ function toggleVisibility(element) {
 // Call this function to set initial display status based on the device type
 // 在页面加载时设置初始可见性状态
 function setInitialVisibility() {
-    const isSplitView = document.getElementById("app-container").classList.contains("split-view");
+    const isMobile = window.innerWidth <= 768;
     const menu = document.getElementById("menu");
     const chatHistoryContainer = document.getElementById("chat-history-container");
     
-    if (window.innerWidth <= 768 || isSplitView) {
-        // 如果是移动设备，则默认隐藏菜单和聊天历史记录
-        menu.style.display = "none";
-        chatHistoryContainer.style.display = "none";
-        toggleSystemMessage();
-    }
+    // 确保初始状态与isMobile一致
+    menu.style.display = isMobile ? "none" : "block";
+    chatHistoryContainer.style.display = isMobile ? "none" : "block";
 }
   
 window.onload = setInitialVisibility;

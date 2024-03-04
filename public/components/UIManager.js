@@ -4,7 +4,8 @@ import EventManager from "./EventManager.js";
 import MessageManager from "./MessageManager.js";
 import StorageManager from "./StorageManager.js";
 import ChatHistoryManager from "./ChatHistoryManager.js";
-import { textToImage, getTts } from "../utils/api.js";
+import { textToImage, getTts, sendImageToOCR, extractTextFromOCRResult } from "../utils/api.js";
+import { readFileAsDataURL } from "../utils/fileUtils.js";
 import swal from "sweetalert";
 import SyncManager from "./SyncManager.js";
 
@@ -34,10 +35,41 @@ class UIManager {
         this.chatHistoryManager = new ChatHistoryManager(this);
         this.chatHistoryManager.subscribe(this.handleChatHistoryChange.bind(this));
         this.setupChatHistoryListClickHandler();
+        this.setupScanFunctionlity();
         this.setupUploadFunctionality();
         this.boundHideAIActorOnOutsideClick = this.hideAIActorOnOutsideClick.bind(this);
     }
+    setupScanFunctionlity() {
+        const scanButton = document.querySelector("#scan-container");
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.style.display = "none";
+        fileInput.accept = "image/*";
 
+        scanButton.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async (event) => {
+            if (event.target.files.length > 0) {
+                const imageFile = event.target.files[0];
+               if(imageFile){
+                try {
+                    const imageData=await readFileAsDataURL(imageFile)
+                    const ocrResult = await sendImageToOCR(imageData);
+                    const extractedText = extractTextFromOCRResult(ocrResult);
+                    this.displayExtractedText(extractedText);
+
+                } catch (error) {
+                    console.error('Error processing OCR', error);
+                }
+            }
+            }
+        });
+
+        document.body.appendChild(fileInput); // 确保fileInput在DOM中以支持 `.click()`
+
+    }
+    displayExtractedText(extractedText) {
+        this.messageInput.value=extractedText;
+    }
 
     setupUploadFunctionality() {
         const uploadContainer = document.querySelector("#upload-container");
@@ -50,9 +82,9 @@ class UIManager {
         uploadContainer.addEventListener("click", () => {
             fileInput.value = null; // 清空文件选择，这会触发浏览器重新检查文件
             fileInput.click(); // 触发文件选择
-            console.log("fileInput click event");
+            console.log(" markdown fileInput click event");
         });
-        
+
 
         fileInput.addEventListener("change", (event) => {
             const file = event.target.files[0];
@@ -73,29 +105,29 @@ class UIManager {
 
         const messages = [];
         const blocks = mdContent.split(/\n*(###\s(user|assistant))\n+/);
-    
+
         for (let i = 1; i < blocks.length; i += 3) {
             const sender = blocks[i + 1].trim();
             const messageBlock = blocks[i + 2].trim();
             let message = messageBlock.split(/\n*(###\s(?:user|assistant))\n+/)[0];
-    
+
             if (sender !== "user" && sender !== "assistant") {
                 console.error(`Invalid message sender: ${sender}`);
                 continue; // 跳过这个无效的消息
             }
             messages.push({ sender, message });
         }
-        
+
         console.log("messages: ", messages);
         if (messages.length === 0) {
             swal("Error!", "No valid messages found in file.", "error");
             return;
         }
-        
+
         this.messageManager.clearFollowUpQuestions();
-        
+
         messages.forEach(({ sender, message }) => {
-            const active = true; 
+            const active = true;
             const messageId = this.generateId();
             const newMessage = {
                 role: sender,
@@ -106,12 +138,12 @@ class UIManager {
             };
             this.messageManager.addMessage(newMessage.role, newMessage.content, newMessage.messageId, newMessage.isActive);
             this.app.prompts.addPrompt(newMessage);
-            this.storageManager.saveMessage(this.currentChatId,newMessage);
+            this.storageManager.saveMessage(this.currentChatId, newMessage);
             this.syncManager.syncMessageCreate(this.currentChatId, newMessage);
             this.chatHistoryManager.updateChatHistory(this.currentChatId);
         });
     }
-    
+
 
     async refreshChatHistoryUI() {
         console.log("refreshChatHistoryUI");
@@ -310,7 +342,7 @@ class UIManager {
         loader.classList.remove("hidden");
         return { submitButton, buttonIcon, loader };
     }
-    createListItem(item, currentProfile, parentElement,isNewTopic=false) {
+    createListItem(item, currentProfile, parentElement, isNewTopic = false) {
         let li = document.createElement("li");
         li.dataset.profile = item.name;
         if (item.name === currentProfile.name) {
@@ -328,7 +360,7 @@ class UIManager {
         // add click event listener
         li.addEventListener("click", function () {
             const profileName = li.dataset.profile;
-            if  (isNewTopic) {
+            if (isNewTopic) {
                 const chatId = self.chatHistoryManager.generateChatId(self.storageManager.getCurrentUsername(), profileName);
                 self.changeChatTopic(chatId, true);
             } else {
@@ -363,7 +395,7 @@ class UIManager {
             savedCurrentProfile = this.profiles[0];
             this.storageManager.setCurrentProfile(savedCurrentProfile);
         }
-        
+
         const currentProfile = this.storageManager.getCurrentProfile();
         //empty menu list
         const menuList = document.querySelector("#menu-list");
@@ -563,7 +595,7 @@ class UIManager {
             // 在 split-view 模式下，我们不改变 mainContainer 的高度，因为 message-input-container 高度是固定的
             return;
         }
-        
+
         this.messageInput.style.maxHeight = `${halfScreenHeight}px`;
         if (!this.messageInput.matches(":focus")) {
             if (this.messageInput.value === "") {
@@ -706,42 +738,42 @@ class UIManager {
     showAIActorList() {
         const aiActorList = document.getElementById("ai-actor-container");
         const overlay = document.querySelector(".modal-overlay");
-  
+
         aiActorList.style.display = "block";
         aiActorList.setAttribute("data-visible", "true");
         overlay.style.display = "block";
-  
+
         // 延迟注册事件处理器以避免立即捕获到触发显示选项框的同一点击事件
         setTimeout(() => {
             document.addEventListener("click", this.boundHideAIActorOnOutsideClick);
         }, 0); // 可以设置更长的时间，如100或200毫秒，如果0仍然过短
     }
-  
+
     hideAIActorList() {
         const aiActorList = document.getElementById("ai-actor-container");
         const overlay = document.querySelector(".modal-overlay");
-    
+
         if (aiActorList.getAttribute("data-visible") === "true") {
             aiActorList.style.display = "none";
             aiActorList.setAttribute("data-visible", "false");
             overlay.style.display = "none";
-      
+
             // 触发自定义事件，通知UIManager ai-actor-container关闭了
             const event = new Event("aiActorListHidden");
             document.dispatchEvent(event);
-      
+
             // 注销点击外部隐藏对话框的事件
             document.removeEventListener("click", this.boundHideAIActorOnOutsideClick);
         }
     }
-  
+
     // 需要绑定正确的 this 上下文
     hideAIActorOnOutsideClick(event) {
-    // 需要确保这个方法能够访问到 aiActorList 和 overlay 变量，
-    // 可以将它们作为 UIManager 类的属性存储
+        // 需要确保这个方法能够访问到 aiActorList 和 overlay 变量，
+        // 可以将它们作为 UIManager 类的属性存储
         const aiActorList = document.getElementById("ai-actor-container");
         const profileListAIActor = document.getElementById("new-chat-button");
-    
+
         if (event.target !== aiActorList && event.target !== profileListAIActor && !profileListAIActor.contains(event.target)) {
             console.log("hideAIActorOnOutsideClick", event.target, event);
             this.hideAIActorList(); // 调用 UIManager 的方法来隐藏列表并处理后续操作
@@ -760,18 +792,18 @@ class UIManager {
                 followingMessages.push(msg);
             }
         });
-        
+
         const chatId = this.currentChatId;
 
         await new Promise((resolve) => {
             // 显示列表
             this.showAIActorList();
-    
+
             const handleActorListHidden = () => {
                 document.removeEventListener("aiActorListHidden", handleActorListHidden);
                 resolve();
             };
-    
+
             // 监听 ai-actor-container 被隐藏的事件
             document.addEventListener("aiActorListHidden", handleActorListHidden);
         });
@@ -818,9 +850,11 @@ class UIManager {
             this.showAIActorList();
         }
     }
-  
+
 
 }
-
+// document.addEventListener('DOMContentLoaded', () => {
+//     new UIManager();
+//   });
 export default UIManager;
 
