@@ -370,18 +370,21 @@ textarea::-webkit-scrollbar-thumb:hover {
     display: flex;
     gap: 5px;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .interactive-elements {
     display: flex;
     align-items: center;
     gap: 5px;
+    flex-wrap: wrap;
 }
 
 .btns {
     display: flex;
     align-items: center;
     gap: 5px;
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -867,4 +870,12 @@ button.action-button.invisible {
 /* This needs to be a separate block */
 #ai-actor-container::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
+}
+
+#horizontal-resize-handle, #resize-handle {
+    transition: background-color 0.25s;
+}
+
+#resize-handle:hover {
+    background-color: #0056b3; 
 }
